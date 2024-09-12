@@ -15,5 +15,5 @@ EXPOSE 80
 # Optionally, you can configure Nginx with your own config
 # COPY nginx.conf /etc/nginx/nginx.conf
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["nginx", "start"]
 
