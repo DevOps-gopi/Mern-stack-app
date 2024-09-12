@@ -27,7 +27,7 @@ spec:
         imagePullPolicy: Always        
         ports:
         - containerPort: 3500 
-      env:
+        env:
           - name: MONGO_CONN_STR
             value: mongodb://db-service:27017/todo?directConnection=true
           - name: MONGO_USERNAME
