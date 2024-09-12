@@ -1,0 +1,95 @@
+pipeline{
+    agent any
+    tools{
+        jdk 'jdk'
+        nodejs 'nodejs'
+    }
+
+    environment  {
+        SCANNER_HOME=tool 'sonar-scanner'
+        AWS_ACCOUNT_ID = credentials('AWS_ACCOUNT_ID')        
+        AWS_DEFAULT_REGION = 'us-east-1'
+        REPOSITORY_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
+    }
+
+    stages{
+        stage("clean workspace"){
+            steps{
+                cleanWs()
+            }
+        }
+
+        stage("Git Pull") {
+            steps {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/DevOps-gopi/Mern-stack-app.git']])
+            }
+        }
+
+        // stage('Sonarqube Analysis') {
+        //     steps {
+        //         dir('Application-Code/frontend') {
+        //             withSonarQubeEnv('sonar-server') {
+        //                 sh ''' $SCANNER_HOME/bin/sonar-scanner \
+        //                 -Dsonar.projectName=three-tier-frontend \
+        //                 -Dsonar.projectKey=three-tier-frontend '''
+        //             }
+        //         }
+        //     }
+        // }
+
+        // stage('Quality Check') {
+        //     steps {
+        //         script {
+        //             waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token' 
+        //         }
+        //     }
+        // }
+
+        // stage('OWASP Dependency-Check Scan') {
+        //     steps {
+        //         dir('Application-Code/frontend') {
+        //             dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+        //             dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+        //         }
+        //     }
+        // }
+
+        // stage('Trivy File Scan') {
+        //     steps {
+        //         dir('Application-Code/frontend') {
+        //             sh 'trivy fs . > trivyfs.txt'
+        //         }
+        //     }
+        // }
+
+        stage("Docker Image build"){
+            steps{
+                script{
+                    dir('Application-Code/frontend'){
+                        sh 'docker system prune -f'
+                        sh 'docker container prune -f'
+                        sh 'docker build -t frontend .'
+                    }
+                }
+            }
+        }
+
+        stage("Docker Image push"){
+            steps{
+                withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+                  script{
+                    sh 'aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${REPOSITORY_URL}'
+                    sh 'docker tag frontend:latest ${REPOSITORY_URL}/frontend:latest'
+                    sh 'docker tag frontend:latest ${REPOSITORY_URL}/frontend:${BUILD_NUMBER}'
+                    sh 'docker push ${REPOSITORY_URL}/frontend:${BUILD_NUMBER}'
+                    sh 'docker push  ${REPOSITORY_URL}/frontend:latest'
+                    }
+                }
+            }
+            
+        }
+
+
+
+    }
+

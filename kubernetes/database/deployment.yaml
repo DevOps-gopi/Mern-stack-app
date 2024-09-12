@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+  labels:
+    app: db
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 25%
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:      
+      containers:
+      - name: db-container
+        image: 'postgres:14'
+        imagePullPolicy: IfNotPresent       
+        ports:
+        - containerPort: 5432  
+        volumeMounts:
+          - name:  db-volume
+            mountPath:  /var/lib/postgresql/data         
+        env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name:  db-secret
+                key:  username
+          - name:  POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name:  db-secret
+                key:  password
+          - name:  POSTGRES_DB
+            valueFrom:
+              secretKeyRef:
+                name:  db-secret
+                key:  database           
+      livenessProbe:
+          httpGet: 
+             path: /healthz
+             port: 5432
+          initialDelaySeconds: 2
+          periodSeconds: 5
+      readinessProbe:
+          httpGet:
+            path: /ready
+            port: 5432
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+      startupProbe:
+          httpGet:
+            path: /started
+            port: 5432
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          failureThreshold: 30
+      volumes:
+        - name:  db-volume          
+          persistentVolumeClaim:
+            claimName: db-pvc
+      

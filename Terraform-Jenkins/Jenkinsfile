@@ -1,0 +1,41 @@
+properties([
+    gitLabConnection(gitLabConnection: '', jobCredentialId: ''),
+    parameters([
+        choice(choices: ['plan', 'apply', 'destroy'], name: 'terraform_cmd')
+    ])
+])
+
+pipeline {
+    agent any
+    stages {
+        stage('clean workspace'){
+            steps{
+                cleanWs()
+            }
+        }
+        stage("Git Pull") {
+            steps {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/DevOps-gopi/Mern-stack-app.git']])
+            }
+        }
+        
+        stage("Terraform Init") {
+            steps {
+                withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+                    sh "terraform -chdir=terraform/ init"
+                }
+            }
+        }
+        
+        stage("Action") {
+            steps {
+                script {
+                    def cmd = params.terraform_cmd
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+                        sh "terraform -chdir=terraform/ ${cmd} --auto-approve"
+                    }
+                }
+            }
+        }
+    }
+}
