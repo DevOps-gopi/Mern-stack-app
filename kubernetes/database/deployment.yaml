@@ -1,9 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata:  
+metadata:   
   name: mongodb
-  labels:
-    app: mongodb
 spec: 
   replicas: 1
   selector:
@@ -31,12 +29,12 @@ spec:
           - name: MONGO_INITDB_ROOT_USERNAME
             valueFrom:
               secretKeyRef:
-                name: db-secret
+                name: mongo-sec
                 key: username
           - name: MONGO_INITDB_ROOT_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: db-secret
+                name: mongo-sec
                 key: password
         volumeMounts:
           - name: mongo-volume

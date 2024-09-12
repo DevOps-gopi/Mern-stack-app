@@ -1,33 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mern-frontend
+  name: frontend
+  namespace: three-tier
   labels:
-    app: mern-frontend
-spec:
+    role: frontend
+    env: demo
+spec: 
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 25%
-  replicas: 1
   selector:
-    matchLabels:
-      app: mern-frontend
+    matchLabels: 
+      role: frontend
   template:
     metadata:
       labels:
-        app: mern-frontend
-    spec:
+        role: frontend
+    spec: 
       imagePullSecrets:
-        - name:  ecr-registry-secret
+      - name: ecr-registry-secret
       containers:
-      - name: mern-frontend-container
+      - name: frontend
         image: 688567300982.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
         imagePullPolicy: Always
         env:
-        - name: REACT_APP_API_URL
-          value: "http://backend-service:3500/api/tasks"
+          - name: REACT_APP_BACKEND_URL
+            value: "http://api:3500/api/tasks"
         ports:
         - containerPort: 3000
-      
