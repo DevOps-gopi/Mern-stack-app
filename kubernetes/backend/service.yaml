@@ -7,6 +7,6 @@ spec:
     app:  mern-backend
   type:  ClusterIP
   ports:
-  - port:  8080
-    targetPort:  8080
+  - port:  3500
+    targetPort:  3500
     protocol: TCP

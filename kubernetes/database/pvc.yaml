@@ -1,8 +1,9 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: db-pvc
+  name: mongo-volume-claim
 spec:
+  storageClassName: ""
   accessModes:
     - ReadWriteOnce
   volumeMode: Filesystem

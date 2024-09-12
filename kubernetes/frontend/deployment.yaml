@@ -27,26 +27,7 @@ spec:
         imagePullPolicy: Always
         env:
         - name: REACT_APP_API_URL
-          value: "http://backend-service:8080/api/notes"
+          value: "http://backend-service:3500/api/tasks"
         ports:
         - containerPort: 3000
-      livenessProbe:
-          httpGet: 
-             path: /healthz
-             port: 8080
-          initialDelaySeconds: 2
-          periodSeconds: 5
-      readinessProbe:
-          httpGet:
-            path: /ready
-            port: 3500
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          successThreshold: 1
-      startupProbe:
-          httpGet:
-            path: /started
-            port: 3500
-          initialDelaySeconds: 0
-          periodSeconds: 10
-          failureThreshold: 30
+      
